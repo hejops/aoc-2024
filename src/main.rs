@@ -2,6 +2,7 @@ use std::fs;
 
 // https://adventofcode.com/2024/day/1
 fn day1() {
+    //{{{
     let contents = fs::read_to_string("day-1-input.txt").unwrap();
 
     // split lines into 2 vecs
@@ -45,6 +46,6 @@ fn day1() {
         .sum::<usize>();
 
     println!("{:#?}", sum);
-}
+} //}}}
 
 fn main() { day1(); }
