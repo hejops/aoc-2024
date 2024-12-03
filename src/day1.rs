@@ -29,19 +29,19 @@ pub fn main() {
         })
         .collect();
 
-    // // part 1
-    // lefts.sort();
-    // rights.sort();
-    // use std::iter::zip;
-    // let sum = zip(lefts, rights)
-    //     .map(|(l, r)| l.abs_diff(r))
-    //     .sum::<usize>();
+    // part 1
+    lefts.sort();
+    rights.sort();
+    use std::iter::zip;
+    let sum = zip(lefts.clone(), rights.clone())
+        .map(|(l, r)| l.abs_diff(r))
+        .sum::<usize>();
+    println!("{:#?}", sum);
 
     // part 2
     let sum = lefts
         .iter()
         .map(|l| rights.iter().filter(move |r| *r == l).count() * *l)
         .sum::<usize>();
-
     println!("{:#?}", sum);
 }
