@@ -1,4 +1,6 @@
 use std::fs;
+use std::ops::Add;
+use std::usize;
 
 use diagonal::diagonal_pos_neg;
 use diagonal::diagonal_pos_pos;
@@ -54,114 +56,71 @@ MXMXAXMASX";
 
     let diagonals = diagonal_pos_neg(&grid)
         .into_iter()
+        .chain(diagonal_pos_pos(&grid))
         .map(|x| x.into_iter().collect::<String>())
         .map(|line| line.match_indices("XMAS").count() + line.match_indices("SAMX").count())
-        .sum::<usize>()
-        + diagonal_pos_pos(&grid)
-            .into_iter()
-            .map(|x| x.into_iter().collect::<String>())
-            .map(|line| line.match_indices("XMAS").count() + line.match_indices("SAMX").count())
-            .sum::<usize>();
+        .sum::<usize>();
 
     println!("{:#?}", horizontals + verticals + diagonals);
 
     let flat_grid = contents.chars().filter(|c| *c != '\n').collect::<Vec<_>>();
     assert_eq!(flat_grid.len(), cols * rows);
 
-    let mut brute = 0;
-    for (i, _) in flat_grid.iter().enumerate().filter(|(_, c)| *c == &'X') {
+    let nw = -<usize as TryInto<isize>>::try_into(rows + 1).unwrap();
+    let n = -<usize as TryInto<isize>>::try_into(rows).unwrap();
+    let ne = -<usize as TryInto<isize>>::try_into(rows - 1).unwrap();
+    let e = 1;
+    let se = <usize as TryInto<isize>>::try_into(rows + 1).unwrap();
+    let s = <usize as TryInto<isize>>::try_into(rows).unwrap();
+    let sw = <usize as TryInto<isize>>::try_into(rows - 1).unwrap();
+    let w = -1;
+
+    let check_mas = |pos: usize, modifier: isize| {
+        let no_left_wrap = (pos % rows) >= 3; // 3 spaces free
+        let no_up_wrap = (pos / rows) >= 3;
+        let no_right_wrap = ((pos % rows) + 1 + 3) <= rows;
+
+        if [w, nw, sw].contains(&modifier) && !no_left_wrap {
+            return false;
+        }
+        if [e, ne, se].contains(&modifier) && !no_right_wrap {
+            return false;
+        }
+        if [n, nw, ne].contains(&modifier) && !no_up_wrap {
+            return false;
+        }
+
+        let ipos: isize = pos.try_into().unwrap();
+
         // note:
         // .get(-n) -> panic
         // .get(out-of-bounds) -> None (safe)
+        flat_grid.get(ipos.add(modifier).unsigned_abs()) == Some(&'M')
+            && flat_grid.get(ipos.add(modifier * 2).unsigned_abs()) == Some(&'A')
+            && flat_grid.get(ipos.add(modifier * 3).unsigned_abs()) == Some(&'S')
+    };
 
-        let no_left_wrap = (i % rows) >= 3; // 3 spaces free
-        let no_up_wrap = (i / rows) >= 3;
-        let no_right_wrap = ((i % rows) + 1 + 3) <= rows;
-        // let no_down_wrap = ((i / rows) + 1 + 3) <= rows;
-
-        // NW
-        if no_left_wrap
-            && no_up_wrap
-            && flat_grid.get(i - (rows + 1)) == Some(&'M')
-            && flat_grid.get(i - (rows + 1) * 2) == Some(&'A')
-            && flat_grid.get(i - (rows + 1) * 3) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // N
-        if no_up_wrap
-            && flat_grid.get(i - rows) == Some(&'M')
-            && flat_grid.get(i - (rows * 2)) == Some(&'A')
-            && flat_grid.get(i - (rows * 3)) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // NE
-        if no_right_wrap
-            && no_up_wrap
-            && flat_grid.get(i - (rows - 1)) == Some(&'M')
-            && flat_grid.get(i - (rows - 1) * 2) == Some(&'A')
-            && flat_grid.get(i - (rows - 1) * 3) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // E
-        if no_right_wrap
-            && flat_grid.get(i + 1) == Some(&'M')
-            && flat_grid.get(i + 2) == Some(&'A')
-            && flat_grid.get(i + 3) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // SE
-        if no_right_wrap
-            && flat_grid.get(i + (rows + 1)) == Some(&'M')
-            && flat_grid.get(i + (rows + 1) * 2) == Some(&'A')
-            && flat_grid.get(i + (rows + 1) * 3) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // S
-        if flat_grid.get(i + rows) == Some(&'M')
-            && flat_grid.get(i + (rows * 2)) == Some(&'A')
-            && flat_grid.get(i + (rows * 3)) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // SW
-        if no_left_wrap
-            && flat_grid.get(i + (rows - 1)) == Some(&'M')
-            && flat_grid.get(i + ((rows - 1) * 2)) == Some(&'A')
-            && flat_grid.get(i + ((rows - 1) * 3)) == Some(&'S')
-        {
-            brute += 1
-        };
-
-        // W
-        if no_left_wrap
-            && flat_grid.get(i - 1) == Some(&'M')
-            && flat_grid.get(i - 2) == Some(&'A')
-            && flat_grid.get(i - 3) == Some(&'S')
-        {
-            brute += 1
-        };
-    }
-    println!("{:#?}", brute);
+    let xmas: usize = flat_grid
+        .iter()
+        .filter(|c| *c == &'X')
+        .enumerate()
+        .map(|(i, _)| {
+            [nw, n, ne, e, se, s, sw, w]
+                .iter()
+                .filter(|dir| check_mas(i, **dir))
+                .count()
+        })
+        .sum();
+    println!("{:#?}", xmas);
 
     // part 2
-    let brute = flat_grid
+    let x_mas = flat_grid
         .iter()
+        .filter(|c| *c == &'A')
         .enumerate()
-        .filter(|(i, c)| {
+        .filter(|(i, _)| {
             // 1 space free on all sides
-            *c == &'A'
-                && (1..rows).contains(&(i % rows))
+            (1..rows).contains(&(i % rows))
                 && (1..rows).contains(&(i / rows))
                 && [
                     [Some(&'M'), Some(&'M'), Some(&'S'), Some(&'S')],
@@ -177,5 +136,5 @@ MXMXAXMASX";
                 ])
         })
         .count();
-    println!("{:#?}", brute);
+    println!("{:#?}", x_mas);
 }
