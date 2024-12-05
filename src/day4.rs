@@ -64,27 +64,29 @@ MXMXAXMASX";
     let flat_grid = contents.chars().filter(|c| *c != '\n').collect::<Vec<_>>();
     assert_eq!(flat_grid.len(), cols * rows);
 
-    let nw = -<usize as TryInto<isize>>::try_into(rows + 1).unwrap();
-    let n = -<usize as TryInto<isize>>::try_into(rows).unwrap();
-    let ne = -<usize as TryInto<isize>>::try_into(rows - 1).unwrap();
+    let w = -1;
     let e = 1;
+
     let se = <usize as TryInto<isize>>::try_into(rows + 1).unwrap();
     let s = <usize as TryInto<isize>>::try_into(rows).unwrap();
     let sw = <usize as TryInto<isize>>::try_into(rows - 1).unwrap();
-    let w = -1;
+
+    let nw = -se;
+    let ne = -sw;
+    let n = -s;
 
     let check_mas = |pos: usize, modifier: isize| {
-        let no_left_wrap = (pos % rows) >= 3; // 3 spaces free
-        let no_up_wrap = (pos / rows) >= 3;
-        let no_right_wrap = ((pos % rows) + 1 + 3) <= rows;
+        let left_ok = (pos % rows) >= 3; // 3 spaces free
+        let up_ok = (pos / rows) >= 3;
+        let right_ok = ((pos % rows) + 1 + 3) <= rows;
 
-        if [w, nw, sw].contains(&modifier) && !no_left_wrap {
+        if [w, nw, sw].contains(&modifier) && !left_ok {
             return false;
         }
-        if [e, ne, se].contains(&modifier) && !no_right_wrap {
+        if [e, ne, se].contains(&modifier) && !right_ok {
             return false;
         }
-        if [n, nw, ne].contains(&modifier) && !no_up_wrap {
+        if [n, nw, ne].contains(&modifier) && !up_ok {
             return false;
         }
 
@@ -100,7 +102,8 @@ MXMXAXMASX";
 
     let xmas: usize = flat_grid
         .iter()
-        // .filter(|c| *c == &'X') // filters more than necessary!
+        // // filters more than necessary, possibly because the indices get changed?
+        // .filter(|c| *c == &'X')
         .enumerate()
         .filter(|(_, c)| *c == &'X')
         .map(|(i, _)| {
