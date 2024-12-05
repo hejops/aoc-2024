@@ -1,6 +1,4 @@
 use std::fs;
-use std::ops::Add;
-use std::usize;
 
 use diagonal::diagonal_pos_neg;
 use diagonal::diagonal_pos_pos;
@@ -95,9 +93,9 @@ MXMXAXMASX";
         // note:
         // .get(-n) -> panic
         // .get(out-of-bounds) -> None (safe)
-        flat_grid.get(ipos.add(modifier).unsigned_abs()) == Some(&'M')
-            && flat_grid.get(ipos.add(modifier * 2).unsigned_abs()) == Some(&'A')
-            && flat_grid.get(ipos.add(modifier * 3).unsigned_abs()) == Some(&'S')
+        flat_grid.get((ipos + modifier).unsigned_abs()) == Some(&'M')
+            && flat_grid.get((ipos + modifier * 2).unsigned_abs()) == Some(&'A')
+            && flat_grid.get((ipos + modifier * 3).unsigned_abs()) == Some(&'S')
     };
 
     let xmas: usize = flat_grid
