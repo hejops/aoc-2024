@@ -100,8 +100,9 @@ MXMXAXMASX";
 
     let xmas: usize = flat_grid
         .iter()
-        .filter(|c| *c == &'X')
+        // .filter(|c| *c == &'X') // filters more than necessary!
         .enumerate()
+        .filter(|(_, c)| *c == &'X')
         .map(|(i, _)| {
             [nw, n, ne, e, se, s, sw, w]
                 .iter()
@@ -114,8 +115,9 @@ MXMXAXMASX";
     // part 2
     let x_mas = flat_grid
         .iter()
-        .filter(|c| *c == &'A')
+        // .filter(|c| *c == &'A')
         .enumerate()
+        .filter(|(_, c)| *c == &'A')
         .filter(|(i, _)| {
             // 1 space free on all sides
             (1..rows).contains(&(i % rows))
