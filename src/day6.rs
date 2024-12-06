@@ -49,10 +49,7 @@ pub fn main() {
     let obstacles = flat_grid
         .iter()
         .enumerate()
-        .filter_map(|(i, c)| match c {
-            '#' => Some(i),
-            _ => None,
-        })
+        .filter_map(|(i, c)| c.eq(&'#').then_some(i))
         .collect::<HashSet<_>>();
     // println!("{:#?}", obstacles);
 
