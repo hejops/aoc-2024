@@ -132,7 +132,7 @@ pub fn main() {
         // user    0m5.173s
         // sys     0m0.007s
 
-        let mut stopped_positions: HashMap<isize, HashSet<usize>> = HashMap::new();
+        let mut stopped_positions: HashMap<usize, HashSet<isize>> = HashMap::new();
 
         let mut direction = up;
         let mut position = flat_grid.iter().position(|c| *c == '^').unwrap();
@@ -144,8 +144,8 @@ pub fn main() {
 
                 // we have stopped at the same position coming from the same direction
                 if stopped_positions
-                    .get(&direction)
-                    .and_then(|s| s.get(&position))
+                    .get(&position)
+                    .and_then(|s| s.get(&direction))
                     .is_some()
                 {
                     infinite += 1;
@@ -153,11 +153,11 @@ pub fn main() {
                     break 'outer;
                 }
                 stopped_positions
-                    .entry(direction)
-                    .and_modify(|s: &mut HashSet<usize>| {
-                        s.insert(position);
+                    .entry(position)
+                    .and_modify(|s| {
+                        s.insert(direction);
                     })
-                    .or_insert(HashSet::from_iter(vec![position].into_iter()));
+                    .or_insert(HashSet::from_iter(vec![direction].into_iter()));
 
                 direction = match direction {
                     a if a == up => right,
