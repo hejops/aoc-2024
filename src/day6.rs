@@ -53,7 +53,7 @@ pub fn main() {
             '#' => Some(i),
             _ => None,
         })
-        .collect::<Vec<_>>();
+        .collect::<HashSet<_>>();
     // println!("{:#?}", obstacles);
 
     let mut direction = up;
@@ -120,7 +120,18 @@ pub fn main() {
         // new_grid[x] = '!';
 
         let mut new_obstacles = obstacles.clone();
-        new_obstacles.push(new_obstacle);
+        new_obstacles.insert(new_obstacle);
+
+        // Vec
+        // real    1m39.745s
+        // user    1m39.612s
+        // sys     0m0.072s
+
+        // apparently, accessing a HashSet is about 20x faster than Vec :)
+        // real    0m5.186s
+        // user    0m5.173s
+        // sys     0m0.007s
+
         let mut stopped_positions: HashMap<isize, HashSet<usize>> = HashMap::new();
 
         let mut direction = up;
@@ -130,14 +141,6 @@ pub fn main() {
         'outer: while not_oob(direction, position, next) {
             while new_obstacles.contains(&next.unwrap()) {
                 // debug_print(new_grid.clone(), position);
-                direction = match direction {
-                    a if a == up => right,
-                    a if a == right => down,
-                    a if a == down => left,
-                    a if a == left => up,
-                    _ => unreachable!(),
-                };
-                next = position.checked_add_signed(direction);
 
                 // we have stopped at the same position coming from the same direction
                 if stopped_positions
@@ -149,13 +152,22 @@ pub fn main() {
                     // println!("{} = infinite! ({})", x, infinite);
                     break 'outer;
                 }
-
                 stopped_positions
                     .entry(direction)
                     .and_modify(|s: &mut HashSet<usize>| {
                         s.insert(position);
                     })
                     .or_insert(HashSet::from_iter(vec![position].into_iter()));
+
+                direction = match direction {
+                    a if a == up => right,
+                    a if a == right => down,
+                    a if a == down => left,
+                    a if a == left => up,
+                    _ => unreachable!(),
+                };
+
+                next = position.checked_add_signed(direction);
             }
 
             position = next.unwrap();
@@ -163,9 +175,4 @@ pub fn main() {
         }
     }
     println!("{:#?}", infinite);
-
-    // :)
-    // real    1m39.745s
-    // user    1m39.612s
-    // sys     0m0.072s
 }
