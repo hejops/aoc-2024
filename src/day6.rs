@@ -139,6 +139,15 @@ pub fn main() {
             while new_obstacles.contains(&next.unwrap()) {
                 // debug_print(new_grid.clone(), position);
 
+                // https://users.rust-lang.org/t/what-is-the-difference-between-map-and-and-then/29108/3
+                // https://davirain.xlog.app/and_then-he-map-zai-shi-yong-shang-you-shen-me-qu-bie?locale=en
+                // map:      F: FnOnce(T) -> U
+                // and_then: F: FnOnce(T) -> Option<U> (preserves shape)
+
+                // usually, drilling down the 'dumb' way will make the compiler tell you to do
+                // the following:
+                // map+filter(is_some)+map(unwrap) -> map+flatten -> and_then
+
                 // we have stopped at the same position coming from the same direction
                 if stopped_positions
                     .get(&position)
