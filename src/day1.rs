@@ -32,8 +32,9 @@ pub fn main() {
     // part 1
     lefts.sort();
     rights.sort();
-    use std::iter::zip;
-    let sum = zip(lefts.clone(), rights.clone())
+    let sum = lefts
+        .iter()
+        .zip(rights.clone())
         .map(|(l, r)| l.abs_diff(r))
         .sum::<usize>();
     println!("{:#?}", sum);
