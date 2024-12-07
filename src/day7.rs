@@ -89,6 +89,11 @@ pub fn main() {
 
     // part 2
     // WARN: 3^k
+
+    // real    0m19.528s
+    // user    0m19.310s
+    // sys     0m0.193s
+
     fn generate_3bit_combinations(len: usize) -> Vec<String> {
         let characters = ["+", "*", "|"];
         if len == 1 {
