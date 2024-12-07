@@ -1,4 +1,4 @@
-day=$1
+day=$(date '+%d' | sed 's/^0//')
 
 # TODO: fix this
 # w3m -header "Cookie: $AOC_TOKEN" "https://adventofcode.com/2024/day/$day" |
