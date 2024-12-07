@@ -1,4 +1,5 @@
 use std::fs;
+use std::usize;
 
 use itertools::Itertools;
 
@@ -39,16 +40,20 @@ pub fn main() {
 
     let contents = fs::read_to_string("day-7-input.txt").unwrap();
 
-    fn generate_bit_combinations(len: usize) -> Vec<Vec<char>> {
-        (0..(2_usize).pow(len.try_into().unwrap()))
-            // https://stackoverflow.com/a/26286238
-            .map(|n| format!("{:01$b}", n, len).chars().collect::<Vec<_>>())
+    fn generate_op_sequences(len: usize) -> impl Iterator<Item = Vec<char>> {
+        (0..(2_usize).pow(len.try_into().unwrap())).map(move |n| {
+            format!(
+                "{:01$b}", // https://stackoverflow.com/a/26286238
+                n, len,
+            )
+            .chars()
             .collect::<Vec<_>>()
+        })
     }
 
     for i in 1..=10 {
-        let combs = generate_bit_combinations(i);
-        assert_eq!(combs.len(), 2_usize.pow(i.try_into().unwrap()),);
+        let combs = generate_op_sequences(i);
+        assert_eq!(combs.count(), 2_usize.pow(i.try_into().unwrap()),);
     }
     // return;
 
@@ -64,37 +69,41 @@ pub fn main() {
                 .map(|n| n.parse::<usize>().unwrap())
                 .collect::<Vec<usize>>();
 
-            let seqs = generate_bit_combinations(nums.len() - 1);
-
-            for ops_seq in seqs {
-                let mut curr = nums[0];
-                for (i, num) in nums[1..].iter().enumerate() {
-                    let op = ops_seq[i];
-                    match op {
-                        '0' => curr += num,
-                        '1' => curr *= num,
-                        _ => unreachable!(),
-                    }
-                }
-                if curr == target {
-                    // println!("ok: {:?} {:?} {:?}", target, nums, ops_seq);
-                    // debug(nums, ops_seq);
-                    return Some(target);
-                }
-            }
-            None
+            generate_op_sequences(nums.len() - 1)
+                .map(|seq| {
+                    nums[1..]
+                        .iter()
+                        .zip(seq)
+                        .fold(nums[0], |sum, (next, op)| match op {
+                            '0' => sum + next,
+                            '1' => sum * next,
+                            _ => unreachable!(),
+                        })
+                        .eq(&target)
+                        .then_some(target)
+                })
+                .find_map(|x| x)
+                .eq(&Some(target))
+                .then_some(target)
         })
         .sum::<usize>();
     println!("{:?}", sum);
+    // return;
 
     // part 2
     // WARN: 3^k
 
+    // non-FP-style
     // real    0m19.528s
     // user    0m19.310s
     // sys     0m0.193s
 
-    fn generate_3bit_combinations(len: usize) -> Vec<String> {
+    // FP-style is about 2x faster
+    // real    0m11.536s
+    // user    0m11.375s
+    // sys     0m0.198s
+
+    fn generate_op_sequences_3(len: usize) -> Vec<String> {
         let characters = ["+", "*", "|"];
         if len == 1 {
             return characters.iter().map(|c| c.to_string()).collect();
@@ -115,7 +124,7 @@ pub fn main() {
         )
     }
     for i in 1..=10 {
-        let combs = generate_3bit_combinations(i);
+        let combs = generate_op_sequences_3(i);
         // println!("{:?}", combs);
         assert_eq!(
             combs.len(),
@@ -135,24 +144,24 @@ pub fn main() {
                 .map(|n| n.parse::<usize>().unwrap())
                 .collect::<Vec<usize>>();
 
-            let seqs = generate_3bit_combinations(nums.len() - 1);
-
-            for ops_seq in seqs {
-                let mut curr = nums[0];
-                for (i, num) in nums[1..].iter().enumerate() {
-                    let op = ops_seq.chars().nth(i).unwrap();
-                    match op {
-                        '+' => curr += num,
-                        '*' => curr *= num,
-                        '|' => curr = (curr.to_string() + &num.to_string()).parse().unwrap(),
-                        _ => unreachable!(),
-                    }
-                }
-                if curr == target {
-                    return Some(target);
-                }
-            }
-            None
+            generate_op_sequences_3(nums.len() - 1)
+                .iter()
+                .map(|seq| {
+                    nums[1..]
+                        .iter()
+                        .zip(seq.chars())
+                        .fold(nums[0], |sum, (next, op)| match op {
+                            '+' => sum + next,
+                            '*' => sum * next,
+                            '|' => (sum.to_string() + &next.to_string()).parse().unwrap(),
+                            _ => unreachable!(),
+                        })
+                        .eq(&target)
+                        .then_some(target)
+                })
+                .find_map(|x| x)
+                .eq(&Some(target))
+                .then_some(target)
         })
         .sum::<usize>();
     println!("{:?}", sum);
