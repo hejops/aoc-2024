@@ -59,9 +59,8 @@ pub fn main() {
         .map(|line| line.split_whitespace().collect::<Vec<_>>())
         .filter_map(|equation| {
             let target = equation[0].trim_end_matches(':').parse::<usize>().unwrap();
-            let nums = equation
+            let nums = equation[1..]
                 .iter()
-                .skip(1)
                 .map(|n| n.parse::<usize>().unwrap())
                 .collect::<Vec<usize>>();
 
@@ -126,9 +125,8 @@ pub fn main() {
         .map(|line| line.split_whitespace().collect::<Vec<_>>())
         .filter_map(|equation| {
             let target = equation[0].trim_end_matches(':').parse::<usize>().unwrap();
-            let nums = equation
+            let nums = equation[1..]
                 .iter()
-                .skip(1)
                 .map(|n| n.parse::<usize>().unwrap())
                 .collect::<Vec<usize>>();
 
