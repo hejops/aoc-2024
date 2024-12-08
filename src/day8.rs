@@ -5,7 +5,6 @@ use std::fs;
 use itertools::Itertools;
 
 pub fn main() {
-    //
     let contents = "............
 ........0...
 .....0......
@@ -63,26 +62,17 @@ pub fn main() {
         positions.iter().combinations(2).for_each(|combi| {
             let raw_diff = combi[1].abs_diff(*combi[0]);
 
-            let row_diff = get_row_diff(combi[1], combi[0], rows);
-            let col_diff = get_col_diff(combi[1], combi[0], cols);
-
             let left = combi.iter().min().unwrap();
             let right = combi.iter().max().unwrap();
+
+            let row_diff = get_row_diff(right, left, rows);
+            let col_diff = get_col_diff(right, left, cols);
 
             if let Some(prev) = left.checked_sub(raw_diff) {
                 if get_row_diff(left, &prev, rows) == row_diff
                     && get_col_diff(left, &prev, cols) == col_diff
                 {
                     antinodes.insert(prev);
-                }
-            }
-
-            if let Some(next) = right.checked_add(raw_diff) {
-                if get_row_diff(right, &next, rows) == row_diff
-                    && get_col_diff(right, &next, cols) == col_diff
-                    && next < rows * cols
-                {
-                    antinodes.insert(next);
                 }
             }
         });
@@ -95,16 +85,17 @@ pub fn main() {
         // include all antennae (without double counting)
         antinodes.extend(positions.clone());
 
-        // mut only for sort
+        // need into_iter for mutation
         positions.into_iter().combinations(2).for_each(|combi| {
             let raw_diff = combi[1].abs_diff(combi[0]);
-            let row_diff = get_row_diff(&combi[1], &combi[0], rows);
-            let col_diff = get_col_diff(&combi[1], &combi[0], cols);
-
-            // repeat add/sub until oob
 
             let mut left = *combi.iter().min().unwrap();
             let mut right = *combi.iter().max().unwrap();
+
+            let row_diff = get_row_diff(&right, &left, rows);
+            let col_diff = get_col_diff(&right, &left, cols);
+
+            // repeat add/sub until oob
 
             while let Some(prev) = left.checked_sub(raw_diff) {
                 if get_row_diff(&left, &prev, rows) == row_diff
