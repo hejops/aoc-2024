@@ -19,7 +19,7 @@ pub fn main() {
 ............
 "; // 12*12
 
-    let contents = fs::read_to_string("day-8-input.txt").unwrap(); // 50*50
+    let contents = include_str!("../input/day-8-input.txt"); // 50*50
 
     let rows = contents.lines().count();
     let cols = contents.lines().next().unwrap().len();

@@ -1,7 +1,7 @@
 use std::fs;
 
 pub fn main() {
-    let contents = fs::read_to_string("day-2-input.txt").unwrap();
+    let contents = include_str!("../input/day-2-input.txt").unwrap();
 
     // part 1: happy path
     let safe = contents

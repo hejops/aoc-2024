@@ -3,7 +3,7 @@ use std::fs;
 use regex::Regex;
 
 pub fn main() {
-    let contents = fs::read_to_string("day-3-input.txt").unwrap();
+    let contents = include_str!("../input/day-3-input.txt").unwrap();
 
     // part 1
     let patt = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();

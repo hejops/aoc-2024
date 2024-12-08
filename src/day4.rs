@@ -15,7 +15,7 @@ SAXAMASAAA
 MAMMMXMMMM
 MXMXAXMASX";
 
-    let contents = fs::read_to_string("day-4-input.txt").unwrap();
+    let contents = include_str!("../input/day-4-input.txt").unwrap();
 
     // part 1
 
