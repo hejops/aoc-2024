@@ -30,9 +30,11 @@ pub fn main() {
         })
         .filter(|ints| {
             for idx in 0..ints.len() {
-                let mut holed = ints.clone();
-                holed.remove(idx);
-                let diffs = holed
+                let diffs = ints
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, c)| (!i.eq(&idx)).then_some(c))
+                    .collect::<Vec<_>>()
                     .windows(2)
                     .map(|window| window[1] - window[0])
                     .collect::<Vec<isize>>();
