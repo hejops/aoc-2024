@@ -29,23 +29,21 @@ pub fn main() {
                 .collect::<Vec<isize>>()
         })
         .filter(|ints| {
-            for idx in 0..ints.len() {
+            (0..ints.len()).any(|idx| {
                 let diffs = ints
                     .iter()
                     .enumerate()
                     .filter_map(|(i, c)| (!i.eq(&idx)).then_some(c))
-                    .collect::<Vec<_>>()
+                    .collect::<Vec<&isize>>()
                     .windows(2)
                     .map(|window| window[1] - window[0])
                     .collect::<Vec<isize>>();
+
                 let min = diffs.iter().min().unwrap();
                 let max = diffs.iter().max().unwrap();
 
-                if (1 <= *min && *max <= 3) || (-3 <= *min && *max <= -1) {
-                    return true;
-                }
-            }
-            false
+                (1 <= *min && *max <= 3) || (-3 <= *min && *max <= -1)
+            })
         })
         .count();
     println!("{:#?}", safe);
