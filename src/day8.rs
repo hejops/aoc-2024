@@ -60,15 +60,14 @@ pub fn main() {
     // part 1
     let mut antinodes = HashSet::new();
     for positions in antennae.values() {
-        positions.iter().combinations(2).for_each(|mut combi| {
-            combi.sort();
+        positions.iter().combinations(2).for_each(|combi| {
             let raw_diff = combi[1].abs_diff(*combi[0]);
 
             let row_diff = get_row_diff(combi[1], combi[0], rows);
             let col_diff = get_col_diff(combi[1], combi[0], cols);
 
-            let left = combi[0];
-            let right = combi[1];
+            let left = combi.iter().min().unwrap();
+            let right = combi.iter().max().unwrap();
 
             if let Some(prev) = left.checked_sub(raw_diff) {
                 if get_row_diff(left, &prev, rows) == row_diff
@@ -97,17 +96,15 @@ pub fn main() {
         antinodes.extend(positions.clone());
 
         // mut only for sort
-        positions.into_iter().combinations(2).for_each(|mut combi| {
-            combi.sort();
-
+        positions.into_iter().combinations(2).for_each(|combi| {
             let raw_diff = combi[1].abs_diff(combi[0]);
             let row_diff = get_row_diff(&combi[1], &combi[0], rows);
             let col_diff = get_col_diff(&combi[1], &combi[0], cols);
 
             // repeat add/sub until oob
 
-            let mut left = combi[0];
-            let mut right = combi[1];
+            let mut left = *combi.iter().min().unwrap();
+            let mut right = *combi.iter().max().unwrap();
 
             while let Some(prev) = left.checked_sub(raw_diff) {
                 if get_row_diff(&left, &prev, rows) == row_diff
