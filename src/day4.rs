@@ -1,5 +1,3 @@
-use std::fs;
-
 use diagonal::diagonal_pos_neg;
 use diagonal::diagonal_pos_pos;
 

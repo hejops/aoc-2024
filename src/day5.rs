@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fs;
 
 pub fn main() {
     let contents = "47|53

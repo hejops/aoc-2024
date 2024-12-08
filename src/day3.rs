@@ -1,5 +1,3 @@
-use std::fs;
-
 use regex::Regex;
 
 pub fn main() {
