@@ -1,4 +1,5 @@
-day=$(date '+%d' | sed 's/^0//')
+today=$(date '+%d' | sed 's/^0//')
+day=${1:-$today}
 
 # TODO: fix this
 # w3m -header "Cookie: $AOC_TOKEN" "https://adventofcode.com/2024/day/$day" |
@@ -6,4 +7,4 @@ day=$(date '+%d' | sed 's/^0//')
 
 source .env
 curl -sL "https://adventofcode.com/2024/day/$day/input" -H "Cookie: session=$AOC_TOKEN" |
-	tee "day-$day-input.txt"
+	tee "./input/day-$day-input.txt"
