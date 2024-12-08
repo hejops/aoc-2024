@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use std::fs;
 use std::usize;
 
+use itertools::repeat_n;
 use itertools::Itertools;
 
 fn debug(
@@ -40,22 +42,33 @@ pub fn main() {
 
     let contents = fs::read_to_string("day-7-input.txt").unwrap();
 
-    fn generate_op_sequences(len: usize) -> impl Iterator<Item = Vec<char>> {
-        (0..(2_usize).pow(len.try_into().unwrap())).map(move |n| {
-            format!(
-                "{:01$b}", // https://stackoverflow.com/a/26286238
-                n, len,
-            )
-            .chars()
-            .collect::<Vec<_>>()
-        })
+    /// permutations with replacement
+    fn generate_op_sequences(
+        ops: u8,
+        len: usize,
+    ) -> impl Iterator<Item = Vec<u8>> {
+        // (0..(2_usize).pow(len.try_into().unwrap())).map(move |n| {
+        //     format!(
+        //         "{:01$b}", // https://stackoverflow.com/a/26286238
+        //         n, len,
+        //     )
+        //     .chars()
+        //     .collect::<Vec<_>>()
+        // })
+
+        repeat_n(0..ops, len).multi_cartesian_product()
     }
 
-    for i in 1..=10 {
-        let combs = generate_op_sequences(i);
-        assert_eq!(combs.count(), 2_usize.pow(i.try_into().unwrap()),);
+    let max_seqs = contents
+        .lines()
+        .map(|line| line.split_whitespace().count())
+        .max()
+        .unwrap();
+
+    let mut seqs: HashMap<usize, Vec<Vec<u8>>> = HashMap::new();
+    for n in 0..=max_seqs {
+        seqs.insert(n, generate_op_sequences(2, n).collect());
     }
-    // return;
 
     // part 1
     // WARN: 2^k
@@ -69,14 +82,16 @@ pub fn main() {
                 .map(|n| n.parse::<usize>().unwrap())
                 .collect::<Vec<usize>>();
 
-            generate_op_sequences(nums.len() - 1)
+            seqs.get(&(nums.len() - 1))
+                .unwrap()
+                .iter()
                 .map(|seq| {
                     nums[1..]
                         .iter()
                         .zip(seq)
                         .fold(nums[0], |sum, (next, op)| match op {
-                            '0' => sum + next,
-                            '1' => sum * next,
+                            0 => sum + next,
+                            1 => sum * next,
                             _ => unreachable!(),
                         })
                         .eq(&target)
@@ -103,35 +118,14 @@ pub fn main() {
     // user    0m11.375s
     // sys     0m0.198s
 
-    fn generate_op_sequences_3(len: usize) -> Vec<String> {
-        let characters = ["+", "*", "|"];
-        if len == 1 {
-            return characters.iter().map(|c| c.to_string()).collect();
-        }
-        // https://stackoverflow.com/a/67746758
-        (2..len).fold(
-            characters
-                .into_iter()
-                .cartesian_product(characters.iter())
-                .map(|(a, b)| a.to_owned() + b)
-                .collect(),
-            |acc: Vec<String>, _| {
-                acc.into_iter()
-                    .cartesian_product(characters.iter())
-                    .map(|(a, b)| a.to_owned() + b)
-                    .collect()
-            },
-        )
-    }
-    for i in 1..=10 {
-        let combs = generate_op_sequences_3(i);
-        // println!("{:?}", combs);
-        assert_eq!(
-            combs.len(),
-            3_usize.pow(i.try_into().unwrap()),
-            "{:?}",
-            combs
-        );
+    // moving sequence generation out of filter_map is about 33% faster
+    // real    0m7.669s
+    // user    0m7.593s
+    // sys     0m0.113s
+
+    let mut seqs: HashMap<usize, Vec<Vec<u8>>> = HashMap::new();
+    for n in 0..=max_seqs {
+        seqs.insert(n, generate_op_sequences(3, n).collect());
     }
 
     let sum = contents
@@ -144,16 +138,17 @@ pub fn main() {
                 .map(|n| n.parse::<usize>().unwrap())
                 .collect::<Vec<usize>>();
 
-            generate_op_sequences_3(nums.len() - 1)
+            seqs.get(&(nums.len() - 1))
+                .unwrap()
                 .iter()
                 .map(|seq| {
                     nums[1..]
                         .iter()
-                        .zip(seq.chars())
+                        .zip(seq.iter())
                         .fold(nums[0], |sum, (next, op)| match op {
-                            '+' => sum + next,
-                            '*' => sum * next,
-                            '|' => (sum.to_string() + &next.to_string()).parse().unwrap(),
+                            0 => sum + next,
+                            1 => sum * next,
+                            2 => (sum.to_string() + &next.to_string()).parse().unwrap(),
                             _ => unreachable!(),
                         })
                         .eq(&target)
