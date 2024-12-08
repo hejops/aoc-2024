@@ -39,7 +39,7 @@ pub fn main() {
 292: 11 6 16 20
 ";
 
-    let contents = include_str!("../input/day-7-input.txt").unwrap();
+    let contents = include_str!("../input/day-7-input.txt");
 
     /// permutations with replacement
     fn generate_op_sequences(

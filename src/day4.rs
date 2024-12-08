@@ -13,7 +13,7 @@ SAXAMASAAA
 MAMMMXMMMM
 MXMXAXMASX";
 
-    let contents = include_str!("../input/day-4-input.txt").unwrap();
+    let contents = include_str!("../input/day-4-input.txt");
 
     // part 1
 

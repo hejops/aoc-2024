@@ -31,7 +31,7 @@ pub fn main() {
 ......#...
 ";
 
-    let contents = include_str!("../input/day-6-input.txt").unwrap();
+    let contents = include_str!("../input/day-6-input.txt");
 
     let rows = contents.lines().count(); // 130*130
     let last = contents.lines().count().pow(2);

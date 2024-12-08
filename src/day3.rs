@@ -1,7 +1,7 @@
 use regex::Regex;
 
 pub fn main() {
-    let contents = include_str!("../input/day-3-input.txt").unwrap();
+    let contents = include_str!("../input/day-3-input.txt");
 
     // part 1
     let patt = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();

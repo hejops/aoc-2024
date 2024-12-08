@@ -33,7 +33,7 @@ pub fn main() {
 
     // an update contains up to 23 pages. 23! = 2.5E22
 
-    let contents = include_str!("../input/day-5-input.txt").unwrap();
+    let contents = include_str!("../input/day-5-input.txt");
 
     // println!("{}", contents);
 

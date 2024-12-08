@@ -1,5 +1,5 @@
 pub fn main() {
-    let contents = include_str!("../input/day-1-input.txt").unwrap();
+    let contents = include_str!("../input/day-1-input.txt");
 
     // split lines into 2 vecs
     // sort each vec
