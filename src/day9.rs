@@ -85,12 +85,10 @@ pub fn main() {
     }
 
     let sum = blocks2.iter().enumerate().fold(0, |sum, (i, block)| {
-        sum + {
-            if let Some(n) = block {
-                return i * n;
-            }
-            0
+        if let Some(n) = block {
+            return sum + i * n;
         }
+        sum
     });
 
     println!("{:?}", sum);
