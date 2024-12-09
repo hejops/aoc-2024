@@ -38,17 +38,6 @@ pub fn main() {
 
     // part 2
 
-    /// get rightmost filled block ([start, end]) that contains the requested
-    /// `value`
-    fn get_right_block(
-        blocks: &[Option<usize>],
-        value: usize,
-    ) -> (usize, usize) {
-        let start = blocks.iter().position(|n| *n == Some(value)).unwrap();
-        let end = blocks.iter().rposition(|n| *n == Some(value)).unwrap();
-        (start, end)
-    }
-
     /// get leftmost free block ([start, end]) with the requested `length`
     fn get_left_block(
         blocks: &[Option<usize>],
@@ -79,13 +68,15 @@ pub fn main() {
     let mut right_val = blocks.iter().rfind(|n| n.is_some()).unwrap().unwrap();
 
     while right_val > 0 {
-        let right = get_right_block(&blocks2, right_val);
-        let left = get_left_block(&blocks2, right.1 - right.0 + 1);
+        let right_start = blocks2.iter().position(|n| *n == Some(right_val)).unwrap();
+        let right_end = blocks2.iter().rposition(|n| *n == Some(right_val)).unwrap();
 
-        if let Some(left) = left {
-            if left.0 < right.0 {
-                (right.0..=right.1)
-                    .zip(left.0..=left.1)
+        let left = get_left_block(&blocks2, right_end - right_start + 1);
+
+        if let Some((left_start, left_end)) = left {
+            if left_start < right_start {
+                (right_start..=right_end)
+                    .zip(left_start..=left_end)
                     .for_each(|(right, left)| blocks2.swap(right, left));
             }
         }
@@ -96,10 +87,9 @@ pub fn main() {
     let sum = blocks2.iter().enumerate().fold(0, |sum, (i, block)| {
         sum + {
             if let Some(n) = block {
-                i * n
-            } else {
-                0
+                return i * n;
             }
+            0
         }
     });
 
