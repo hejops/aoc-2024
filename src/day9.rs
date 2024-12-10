@@ -8,10 +8,7 @@ pub fn main() {
         .filter_map(|n| n.to_string().parse::<usize>().ok())
         .enumerate()
         .fold(vec![], |mut b: Vec<Option<usize>>, (i, num)| {
-            match i & 1 == 0 {
-                true => b.extend(vec![Some(i / 2); num]),
-                false => b.extend(vec![None; num]),
-            };
+            b.extend(vec![(i & 1 == 0).then_some(i / 2); num]);
             b
         });
 
