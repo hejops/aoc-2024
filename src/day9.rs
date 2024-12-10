@@ -34,6 +34,9 @@ pub fn main() {
     println!("{:?}", sum);
 
     // part 2
+    // NOTE: storing gaps in a HashMap {gap length: [positions]} is not trivial,
+    // because on any move event, both the newly unfreed block and the newly
+    // freed block must be accounted for in the HashMap
 
     /// get leftmost free block ([start, end]) with the requested `length`
     fn get_left_block(
@@ -62,23 +65,26 @@ pub fn main() {
     }
 
     let mut blocks2 = blocks.clone();
-    let mut right_val = blocks.iter().rfind(|n| n.is_some()).unwrap().unwrap();
 
-    while right_val > 0 {
-        let right_start = blocks2.iter().position(|n| *n == Some(right_val)).unwrap();
-        let right_end = blocks2.iter().rposition(|n| *n == Some(right_val)).unwrap();
+    // although maintaining 4 state variables looks weird (and the while condition
+    // looks much uglier), this is apparently 2x faster than only maintaining
+    // right_val (which would require reinstantiating right_start, right_end, left
+    // on every iteration)
+    let mut right_val = blocks2.iter().rfind(|n| n.is_some()).unwrap().unwrap();
+    let mut right_start = blocks2.iter().position(|n| *n == Some(right_val)).unwrap();
+    let mut right_end = blocks2.iter().rposition(|n| *n == Some(right_val)).unwrap();
+    let mut left = get_left_block(&blocks2, right_end - right_start + 1);
 
-        let left = get_left_block(&blocks2, right_end - right_start + 1);
-
-        if let Some((left_start, left_end)) = left {
-            if left_start < right_start {
-                (right_start..=right_end)
-                    .zip(left_start..=left_end)
-                    .for_each(|(right, left)| blocks2.swap(right, left));
-            }
-        }
+    while right_val > 0 && left.is_some() && left.unwrap().0 < right_start {
+        let (left_start, left_end) = left.unwrap();
+        (right_start..=right_end)
+            .zip(left_start..=left_end)
+            .for_each(|(right, left)| blocks2.swap(right, left));
 
         right_val -= 1;
+        right_start = blocks2.iter().position(|n| *n == Some(right_val)).unwrap();
+        right_end = blocks2.iter().rposition(|n| *n == Some(right_val)).unwrap();
+        left = get_left_block(&blocks2, right_end - right_start + 1);
     }
 
     let sum = blocks2.iter().enumerate().fold(0, |sum, (i, block)| {
