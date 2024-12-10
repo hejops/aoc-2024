@@ -59,18 +59,14 @@ pub fn main() {
         let start = pos;
         let mut positions = HashSet::from_iter(vec![pos]);
         let mut next_value = 1;
-        while !positions.is_empty() {
+        while !positions.is_empty() && next_value <= 9 {
             positions = positions
                 .iter()
                 .filter_map(|pos| get_neighbours(*pos, next_value))
                 .flatten()
                 .collect::<HashSet<_>>();
             next_value += 1;
-
-            if next_value == 9 + 1 {
-                endpoints.insert(start, positions);
-                break;
-            }
+            endpoints.insert(start, positions.clone());
         }
     }
 
@@ -85,7 +81,7 @@ pub fn main() {
         let mut routes: Vec<Vec<usize>> = vec![route];
         let mut next_value = 1;
 
-        while next_value < 9 + 1 {
+        while next_value <= 9 {
             let mut extended_routes: Vec<Vec<usize>> = vec![];
 
             for route in &routes {
