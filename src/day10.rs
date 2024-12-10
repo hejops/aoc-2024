@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::usize;
 
 pub fn main() {
     let contents = "89010123
