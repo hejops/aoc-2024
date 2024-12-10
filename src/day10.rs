@@ -33,8 +33,8 @@ pub fn main() {
 
     let get_neighbours = |pos: usize, value: u8| -> Option<HashSet<usize>> {
         let up = pos.checked_sub(cols);
-        let left = (pos % cols).gt(&0).then_some(pos.checked_sub(1).unwrap());
-        let right = ((pos % cols) < cols - 1 && pos + 1 < flat_len).then_some(pos + 1);
+        let left = (pos % cols).gt(&0).then_some(pos - 1);
+        let right = ((pos % cols) + 1 < cols && pos + 1 < flat_len).then_some(pos + 1);
         let down = (pos + cols).lt(&flat_len).then_some(pos + cols);
 
         let neighbours = [up, left, right, down]
