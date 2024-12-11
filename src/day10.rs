@@ -45,22 +45,17 @@ pub fn main() {
     };
 
     // part 1
-    let mut endpoints = HashMap::new();
-
-    for start in zeros.clone() {
-        let positions = (1..=9).fold(HashSet::from_iter(vec![start]), |pos, next_value| {
-            pos.iter()
-                .filter_map(|pos| get_neighbours(*pos, next_value))
-                .flatten()
-                .collect::<HashSet<_>>()
-        });
-
-        if !positions.is_empty() {
-            endpoints.insert(start, positions.clone());
-        }
-    }
-
-    let score = endpoints.values().map(|s| s.len()).sum::<usize>();
+    // behold... the double fold
+    let score = zeros.clone().into_iter().fold(0, |sum, start| {
+        sum + (1..=9)
+            .fold(HashSet::from_iter(vec![start]), |pos, next_value| {
+                pos.iter()
+                    .filter_map(|pos| get_neighbours(*pos, next_value))
+                    .flatten()
+                    .collect::<HashSet<_>>()
+            })
+            .len()
+    });
     println!("{:?}", score);
 
     // part 2
