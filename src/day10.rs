@@ -15,7 +15,6 @@ pub fn main() {
 
     let rows = contents.lines().count();
     let cols = contents.lines().next().unwrap().len();
-    let flat_len = rows * cols;
 
     let flat_grid = contents
         .chars()
@@ -32,9 +31,9 @@ pub fn main() {
 
     let get_neighbours = |pos: usize, value: u8| -> Option<HashSet<usize>> {
         let up = pos.checked_sub(cols);
-        let left = (pos % cols).gt(&0).then_some(pos - 1);
-        let right = ((pos % cols) + 1 < cols && pos + 1 < flat_len).then_some(pos + 1);
-        let down = (pos + cols).lt(&flat_len).then_some(pos + cols);
+        let left = ((pos % cols) > 0).then_some(pos - 1);
+        let right = ((pos % cols) + 1 < cols).then_some(pos + 1);
+        let down = ((pos / rows) + 1 < rows).then_some(pos + rows);
 
         let neighbours = [up, left, right, down]
             .into_iter()
@@ -48,20 +47,16 @@ pub fn main() {
     // part 1
     let mut endpoints = HashMap::new();
 
-    for pos in zeros.clone() {
-        let start = pos;
-        let mut positions = HashSet::from_iter(vec![pos]);
-        let mut next_value = 1;
-
-        while !positions.is_empty() && next_value <= 9 {
-            positions = positions
-                .iter()
+    for start in zeros.clone() {
+        let positions = (1..=9).fold(HashSet::from_iter(vec![start]), |pos, next_value| {
+            pos.iter()
                 .filter_map(|pos| get_neighbours(*pos, next_value))
                 .flatten()
-                .collect::<HashSet<_>>();
+                .collect::<HashSet<_>>()
+        });
 
+        if !positions.is_empty() {
             endpoints.insert(start, positions.clone());
-            next_value += 1;
         }
     }
 
@@ -78,7 +73,7 @@ pub fn main() {
             let mut extended_routes: Vec<Vec<usize>> = vec![];
 
             for route in &mut routes {
-                if let Some(neighbours) = get_neighbours(*route.last().unwrap(), next_value) {
+                if let Some(neighbours) = get_neighbours(route[route.len() - 1], next_value) {
                     extended_routes = neighbours.iter().fold(extended_routes, |mut routes, n| {
                         route.push(*n);
                         routes.push(route.to_vec());
