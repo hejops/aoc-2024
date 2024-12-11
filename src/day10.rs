@@ -62,9 +62,8 @@ pub fn main() {
     let score = zeros.iter().fold(0, |sum, pos| {
         let route = vec![*pos];
         let mut routes: Vec<Vec<usize>> = vec![route];
-        let mut next_value = 1;
 
-        while next_value <= 9 {
+        for next_value in 1..=9 {
             let mut extended_routes: Vec<Vec<usize>> = vec![];
 
             for route in &mut routes {
@@ -78,7 +77,6 @@ pub fn main() {
             }
 
             routes = extended_routes;
-            next_value += 1;
         }
 
         sum + routes.len()
