@@ -59,7 +59,7 @@ pub fn main() {
     println!("{:?}", score);
 
     // part 2
-    let sum = zeros.iter().fold(0, |sum, pos| {
+    let score = zeros.iter().fold(0, |sum, pos| {
         let route = vec![*pos];
         let mut routes: Vec<Vec<usize>> = vec![route];
         let mut next_value = 1;
@@ -84,5 +84,5 @@ pub fn main() {
         sum + routes.len()
     });
 
-    println!("{:?}", sum);
+    println!("{:?}", score);
 }
