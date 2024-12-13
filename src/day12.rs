@@ -45,7 +45,8 @@ EEEC";
     // flood fill
     let mut seen: HashSet<usize> = HashSet::new();
     // { pos: {perimeter, perimeter, ...}, pos: ... }
-    let mut regions: HashMap<usize, Vec<usize>> = HashMap::new();
+    let mut edges: HashMap<usize, usize> = HashMap::new();
+    let mut regions: HashMap<usize, HashSet<usize>> = HashMap::new();
 
     for (pos, c) in flat_grid.iter().enumerate() {
         if seen.contains(&pos) {
@@ -54,7 +55,8 @@ EEEC";
 
         let mut neighbours = get_neighbours(pos, c);
         seen.insert(pos);
-        regions.insert(pos, vec![4.sub(neighbours.len())]);
+        edges.insert(pos, 4.sub(neighbours.len()));
+        regions.insert(pos, HashSet::from_iter(vec![pos]));
 
         while !neighbours.is_empty() {
             let mut all_neighbours = HashSet::new();
@@ -62,7 +64,10 @@ EEEC";
             for n in neighbours {
                 seen.insert(n);
                 let new = get_neighbours(n, c);
-                regions.entry(pos).and_modify(|v| v.push(4.sub(new.len())));
+                edges.insert(n, 4.sub(new.len()));
+                regions.entry(pos).and_modify(|v| {
+                    v.insert(n);
+                });
                 all_neighbours.extend(new.clone());
             }
 
@@ -75,7 +80,7 @@ EEEC";
 
     let score = regions
         .values()
-        .map(|r| r.len() * r.iter().sum::<usize>())
+        .map(|r| r.len() * r.iter().map(|pos| edges.get(pos).unwrap()).sum::<usize>())
         .sum::<usize>();
     println!("{:?}", score);
 }
