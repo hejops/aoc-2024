@@ -69,19 +69,19 @@ Prize: X=18641, Y=10279";
     // https://old.reddit.com/r/adventofcode/comments/1hd4wda/2024_day_13_solutions/m1wbl25/
 
     let tokens = prizes.iter().fold(0, |sum, prize| {
-        let a_x = prize[0] as isize;
-        let a_y = prize[1] as isize;
-        let b_x = prize[2] as isize;
-        let b_y = prize[3] as isize;
-        let p_x = prize[4] as isize + 10_000_000_000_000;
-        let p_y = prize[5] as isize + 10_000_000_000_000;
+        let a_x = prize[0] as f64; // f32 won't have enough space for decimals!
+        let a_y = prize[1] as f64;
+        let b_x = prize[2] as f64;
+        let b_y = prize[3] as f64;
+        let p_x = (prize[4] + 10_000_000_000_000) as f64;
+        let p_y = (prize[5] + 10_000_000_000_000) as f64;
 
         let denom = a_y * b_x - b_y * a_x;
         let a_det = b_x * p_y - b_y * p_x;
         let b_det = a_y * p_x - a_x * p_y;
 
-        let a = a_det as f64 / denom as f64; // f32 won't have enough space for decimals!
-        let b = b_det as f64 / denom as f64;
+        let a = a_det / denom;
+        let b = b_det / denom;
 
         if a.fract() == 0.0 && b.fract() == 0.0 && a > 0.0 && b > 0.0 {
             return sum + (3 * (a as usize)) + (b as usize);
