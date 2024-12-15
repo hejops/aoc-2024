@@ -57,9 +57,9 @@ fn print_wide_grid(
     grid: &[Object],
     robot: (usize, usize),
 ) {
-    for row in 0..10 {
+    for row in 0..50 {
         let mut line = "".to_string();
-        for col in 0..(10 * 2) {
+        for col in 0..(50 * 2) {
             if robot == (col, row) {
                 line.push('@');
                 continue;
@@ -94,7 +94,7 @@ pub fn main() {
 
 <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^>^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
 
-    // let contents = include_str!("../input/day-15-input.txt");
+    let contents = include_str!("../input/day-15-input.txt");
 
     let mut robot = (0, 0); // x, y
     let mut grid = vec![];
@@ -335,7 +335,7 @@ pub fn main() {
             }
         };
 
-        if i >= 310 {
+        if i >= 3646 {
             println!("{:?}", i);
             println!("{:?}", robot);
             print_wide_grid(&wide_grid, robot);
@@ -354,21 +354,7 @@ pub fn main() {
             _ => unreachable!(),
         };
 
-        // TODO: at 310, a box is erroneously excluded from this vec; use get_nei or
-        // something
-        let movable_boxes = path
-            .iter()
-            .filter(|obj| {
-                matches!(obj.kind, ObjectKind::WideBox)
-                    && match dir {
-                        '<' | '>' => obj.x.abs_diff(robot.0),
-                        '^' | 'v' => obj.y.abs_diff(robot.1),
-                        _ => unreachable!(),
-                    } < dist_to_free
-            })
-            .collect::<Vec<_>>();
-
-        let get_nei = |pos: (usize, usize), is_robot: bool| -> Vec<&Object> {
+        let get_nei = |pos: (usize, usize), is_robot: bool| -> Vec<Object> {
             boxes
                 .clone()
                 .into_iter()
@@ -387,14 +373,28 @@ pub fn main() {
                         _ => unreachable!(),
                     }
                 })
+                .map(|x| x.to_owned())
                 .collect()
         };
 
-        // check if vertical contiguous @B# path possible (which means cannot move)
-        // horizontal paths require no special treatment
+        // TODO: at 310, a box is erroneously excluded from this movable_boxes (it is
+        // present in path); use get_nei or something
+        let mut movable_boxes: Vec<Object> = vec![];
         let mut is_blocked: bool = false;
-        if ['^', 'v'].contains(&dir) {
+        if ['<', '>'].contains(&dir) {
+            movable_boxes = path
+                .into_iter()
+                .filter(|obj| {
+                    matches!(obj.kind, ObjectKind::WideBox)
+                        && obj.x.abs_diff(robot.0) < dist_to_free
+                })
+                .map(|x| x.to_owned())
+                .collect::<Vec<_>>();
+        } else if ['^', 'v'].contains(&dir) {
+            // check if vertical contiguous @B# path possible (which means cannot move)
+            // horizontal paths require no special treatment
             let mut neighbour_boxes = get_nei(robot, true);
+            movable_boxes.extend(neighbour_boxes.clone());
             println!("neighbours {:?}", neighbour_boxes);
             while !neighbour_boxes.is_empty() {
                 neighbour_boxes = neighbour_boxes
@@ -402,8 +402,9 @@ pub fn main() {
                     .into_iter()
                     .flat_map(|b| get_nei((b.x, b.y), false))
                     .collect();
+                movable_boxes.extend(neighbour_boxes.clone());
 
-                // obstacles that would block the current set of boxes
+                // obstacles that would vertically block the current set of boxes
                 let obstacles = neighbour_boxes
                     .iter()
                     .flat_map(|b| {
@@ -439,7 +440,7 @@ pub fn main() {
             for box_to_move in movable_boxes {
                 wide_grid
                     .iter_mut()
-                    .find(|b| b == box_to_move)
+                    .find(|b| **b == box_to_move)
                     .unwrap()
                     ._move(offset);
             }
@@ -450,4 +451,35 @@ pub fn main() {
             unreachable!()
         }
     }
+
+    let sum = wide_grid
+        .iter()
+        .filter(|obj| matches!(obj.kind, ObjectKind::WideBox))
+        .map(|_box| _box.x + _box.y * 100)
+        .sum::<usize>();
+    println!("{:?}", sum);
 }
+
+// got
+// ####################
+// ##[].......[].[][]##
+// ##[]...........[].##
+// ##[]........[][][]##
+// ##[]......[]....[]##
+// ##..##......[]....##
+// ##..[]............##
+// ##..@......[].[][]##
+// ##......[][]..[]..##
+// ####################
+//
+// expected
+// ####################
+// ##[].......[].[][]##
+// ##[]...........[].##
+// ##[]........[][][]##
+// ##[]......[]....[]##
+// ##..##......[]....##
+// ##..[]............##
+// ##..@......[].[][]##
+// ##......[][]..[]..##
+// ####################
