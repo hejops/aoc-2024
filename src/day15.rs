@@ -179,16 +179,11 @@ pub fn main() {
         } else if movable_boxes.len() < dist_to_obstacle {
             // println!("moving and pushing boxes");
 
-            // https://old.reddit.com/r/rust/comments/15b95px/_/jtp76vm/
-            for _box in &mut grid {
-                let box_dist = _box.x.abs_diff(robot.0) + _box.y.abs_diff(robot.1);
-                if (box_dist < dist_to_free)
-                    && movable_boxes.contains(
-                        &&&_box.to_owned(), // lol
-                    )
-                {
-                    _box._move(offset);
-                }
+            for box_to_move in movable_boxes {
+                grid.iter_mut()
+                    .find(|b| b == box_to_move)
+                    .unwrap()
+                    ._move(offset);
             }
 
             robot.0 = robot.0.checked_add_signed(offset.0).unwrap();
