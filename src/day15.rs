@@ -6,7 +6,15 @@ use itertools::Itertools;
 struct Object {
     x: usize,
     y: usize,
-    is_box: bool,
+    // is_box: bool,
+    kind: ObjectKind,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum ObjectKind {
+    Obstacle,
+    Box,
+    WideBox,
 }
 
 impl Object {
@@ -14,7 +22,7 @@ impl Object {
         &mut self,
         direction: (isize, isize),
     ) {
-        if self.is_box {
+        if let ObjectKind::Box = self.kind {
             let (dx, dy) = direction;
             self.x = self.x.checked_add_signed(dx).unwrap();
             self.y = self.y.checked_add_signed(dy).unwrap();
@@ -22,27 +30,27 @@ impl Object {
     }
 }
 
-fn print_grid(
-    grid: &[Object],
-    robot: (usize, usize),
-) {
-    for row in 0..10 {
-        let mut line = "".to_string();
-        for col in 0..10 {
-            if robot == (col, row) {
-                line.push('@');
-                continue;
-            }
-            let c = grid
-                .iter()
-                .find(|obj| obj.x == col && obj.y == row)
-                .map(|obj| if obj.is_box { 'O' } else { '#' })
-                .unwrap_or('.');
-            line.push(c);
-        }
-        println!("{}", line);
-    }
-}
+// fn print_grid(
+//     grid: &[Object],
+//     robot: (usize, usize),
+// ) {
+//     for row in 0..10 {
+//         let mut line = "".to_string();
+//         for col in 0..10 {
+//             if robot == (col, row) {
+//                 line.push('@');
+//                 continue;
+//             }
+//             let c = grid
+//                 .iter()
+//                 .find(|obj| obj.x == col && obj.y == row)
+//                 .map(|obj| if obj.is_box { 'O' } else { '#' })
+//                 .unwrap_or('.');
+//             line.push(c);
+//         }
+//         println!("{}", line);
+//     }
+// }
 
 pub fn main() {
     let contents = "##########
@@ -58,7 +66,7 @@ pub fn main() {
 
 <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^>^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
 
-    let contents = include_str!("../input/day-15-input.txt");
+    // let contents = include_str!("../input/day-15-input.txt");
 
     let mut robot = (0, 0); // x, y
     let mut grid = vec![];
@@ -70,7 +78,11 @@ pub fn main() {
                 _ => grid.push(Object {
                     x,
                     y,
-                    is_box: c == 'O',
+                    kind: match c {
+                        'O' => ObjectKind::Box,
+                        '#' => ObjectKind::Obstacle,
+                        _ => unreachable!(),
+                    },
                 }),
             };
         }
@@ -79,12 +91,12 @@ pub fn main() {
     for dir in contents
         .lines()
         .filter(|line| !line.contains('#'))
-        .map(|l| l.to_string())
         .join("")
         .chars()
     {
+        // continue;
         let cloned_grid = grid.clone();
-        let traversable = cloned_grid
+        let path = cloned_grid
             .iter()
             .filter(|obj| match dir {
                 '<' => obj.x < robot.0 && obj.y == robot.1,
@@ -95,9 +107,9 @@ pub fn main() {
             })
             .collect::<Vec<&Object>>();
 
-        let dist_to_obstacle = traversable
+        let dist_to_obstacle = path
             .iter()
-            .filter(|obj| !obj.is_box)
+            .filter(|obj| matches!(obj.kind, ObjectKind::Obstacle))
             .map(|obj| match dir {
                 '<' | '>' => obj.x.abs_diff(robot.0),
                 '^' | 'v' => obj.y.abs_diff(robot.1),
@@ -111,7 +123,7 @@ pub fn main() {
             while free.0 > 0 // not at edge
                 && free.1 > 0
                 && (free == robot
-                    || traversable // tile is occupied
+                    || path // tile is occupied
                         .iter()
                         .any(|obj| obj.x == free.0 && obj.y == free.1))
             {
@@ -146,10 +158,10 @@ pub fn main() {
             _ => unreachable!(),
         };
 
-        let movable_boxes = traversable
+        let movable_boxes = path
             .iter()
             .filter(|obj| {
-                obj.is_box
+                matches!(obj.kind, ObjectKind::Box)
                     && match dir {
                         '<' | '>' => obj.x.abs_diff(robot.0),
                         '^' | 'v' => obj.y.abs_diff(robot.1),
@@ -168,12 +180,17 @@ pub fn main() {
             // println!("moving and pushing boxes");
 
             // https://old.reddit.com/r/rust/comments/15b95px/_/jtp76vm/
-            for idx in 0..grid.len() {
-                let box_dist = grid[idx].x.abs_diff(robot.0) + grid[idx].y.abs_diff(robot.1);
-                if (box_dist < dist_to_free) && movable_boxes.contains(&&&grid[idx]) {
-                    grid[idx]._move(offset);
+            for _box in &mut grid {
+                let box_dist = _box.x.abs_diff(robot.0) + _box.y.abs_diff(robot.1);
+                if (box_dist < dist_to_free)
+                    && movable_boxes.contains(
+                        &&&_box.to_owned(), // lol
+                    )
+                {
+                    _box._move(offset);
                 }
             }
+
             robot.0 = robot.0.checked_add_signed(offset.0).unwrap();
             robot.1 = robot.1.checked_add_signed(offset.1).unwrap();
         } else {
@@ -185,7 +202,7 @@ pub fn main() {
 
     let sum = grid
         .iter()
-        .filter(|obj| obj.is_box)
+        .filter(|obj| matches!(obj.kind, ObjectKind::Box))
         .map(|_box| _box.x + _box.y * 100)
         .sum::<usize>();
     println!("{:?}", sum);
