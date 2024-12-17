@@ -1,6 +1,5 @@
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use std::collections::VecDeque;
 use std::usize;
 
 use itertools::Itertools;
@@ -38,9 +37,9 @@ pub fn main() {
 #.#.#.........#.#
 #.#.#.#########.#
 #S#.............#
-#################"; // 17*17
+#################"; // 17*17, 11048
 
-    // let contents = include_str!("../input/day-16-input.txt");
+    let contents = include_str!("../input/day-16-input.txt");
     let cols = contents.lines().count();
 
     let flat_grid = contents.replace('\n', "").chars().collect::<Vec<char>>();
@@ -82,67 +81,59 @@ pub fn main() {
     }
     distances.insert(start, 0);
 
-    let mut unvisited: BinaryHeap<Reverse<(usize, isize)>> = BinaryHeap::new(); // max heap
-    unvisited.push(Reverse((start, 1))); // (pos, dir)
+    /*
+    // this is an incorrect use of min heap. it is not meaningful, since we are taking tile with
+    // min position (when we should be taking tile with min distance)
+    let mut unvisited: BinaryHeap<Reverse<(usize, isize)>> = BinaryHeap::new(); // default is max heap
+    unvisited.push(Reverse((start, 1))); // (curr pos, curr dir)
+    */
+
+    let mut unvisited: VecDeque<(usize, isize)> = VecDeque::new();
+    unvisited.push_front((start, 1)); // (curr pos, curr dir)
 
     while !unvisited.is_empty() {
-        let curr_pos = unvisited.pop().unwrap();
+        unvisited // VecDeque cannot be sorted as-is
+            .make_contiguous()
+            .sort_by_key(|pos| distances.get(&pos.0));
+        let curr_tile = unvisited.pop_front().unwrap();
+        let (curr_pos, curr_dir) = curr_tile;
 
-        for dir in [-1, 1, -(cols as isize), cols as isize] {
-            let neighbour_pos = curr_pos.0 .0.checked_add_signed(dir).unwrap();
+        // order of dirs doesn't matter
+        for dir in [1, -1, -(cols as isize), cols as isize] {
+            let neighbour_pos = curr_pos.checked_add_signed(dir).unwrap();
 
             if !distances.contains_key(&neighbour_pos) {
                 // tile is wall
                 continue;
             }
 
-            let dist = 1 + 1000
-                * (if neighbour_pos as isize - curr_pos.0 .0 as isize == curr_pos.0 .1 {
-                    0
-                } else {
-                    1
-                }) as usize;
+            let dist = 1 + 1000 * (if dir == curr_dir { 0 } else { 1 }) as usize;
 
             if dist < *distances.get(&neighbour_pos).unwrap() {
+                println!(
+                    "nei {:?} curr pos {} curr dir {} dist {}",
+                    neighbour_pos, curr_pos, curr_dir, dist,
+                );
+
                 distances.insert(neighbour_pos, dist);
-                prev.insert(neighbour_pos, Some(curr_pos.0 .0));
-                unvisited.push(Reverse((neighbour_pos, dir)));
+                prev.insert(neighbour_pos, Some(curr_pos));
+                unvisited.push_back((neighbour_pos, dir));
             };
         }
-
-        // println!("next visits: {:?}", unvisited);
     }
 
-    // println!("{:?}", distances);
-    // println!("{:?}", prev);
-
     let mut end_pos = flat_grid.iter().position(|c| *c == 'E').unwrap();
-    println!("end: {:?}", end_pos);
 
     assert!(prev.get(&end_pos).is_some());
     assert!(prev.values().unique().count() > 2);
 
-    let mut sum = 0;
+    let mut sum = 1;
     let mut path = vec![];
     while let Some(Some(x)) = prev.get(&end_pos) {
-        // println!("{:?}", x);
         path.push(x);
-        // println!("{:?}", distances.get(x));
         sum += distances.get(x).unwrap();
         end_pos = *x;
     }
-
-    // path.reverse();
-    // for w in path.windows(2) {
-    //     let dir = match *w[1] as isize - *w[0] as isize {
-    //         1 => "right",
-    //         -1 => "left",
-    //         a if a == cols as isize => "down",
-    //         a if a == -(cols as isize) => "up",
-    //         _ => unreachable!(),
-    //     };
-    //     println!("{} {} {:?}", w[0], dir, w[1]);
-    // }
 
     print_grid(&flat_grid, path, start, cols);
 
