@@ -122,17 +122,22 @@ Program: 0,3,5,4,3,0";
             new_a /= 100000;
         } else {
             // arrives at a solution fairly quickly, but it will be too high
+            // i haven't found a way to reach the goal in one pass
             let last = last_n_matching(output, program.clone());
-            new_a += 3_usize.pow(16 - last as u32);
-            // new_a += 2_usize.pow(17 - last as u32);
+            new_a += 3_usize.pow(17_u32.saturating_sub(last as u32));
         }
     }
     println!("first pass (high): {:?}", new_a);
 
-    new_a -= 50_000_000; // relatively conservative (but slow)
-    while run_program(program.clone(), new_a, real_b, real_c) != program.clone() {
-        // println!("{:?}", new_a);
-        new_a += 1;
+    new_a -= 3_usize.pow(17);
+    loop {
+        let output = run_program(program.clone(), new_a, real_b, real_c);
+        if output == program.clone() {
+            break;
+        }
+        let last = last_n_matching(output, program.clone());
+        // guarantee we increment by 1 when we are close to the goal
+        new_a += 2_usize.pow(14_u32.saturating_sub(last as u32));
     }
     println!("{:?}", new_a);
 }
