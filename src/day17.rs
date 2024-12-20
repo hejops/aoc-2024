@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-
-use itertools::Itertools;
-
 pub fn main() {
     let contents = "Register A: 729
 Register B: 0
