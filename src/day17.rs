@@ -38,7 +38,7 @@ Program: 0,3,5,4,3,0";
         .map(|n| n.parse::<usize>().unwrap())
         .collect::<Vec<_>>();
 
-    let run_program = |program: Vec<usize>, mut a: usize, mut b: usize, mut c: usize| {
+    let run_program = |program: &[usize], mut a: usize, mut b: usize, mut c: usize| {
         let mut i_ptr = 0;
         let mut outputs = vec![];
         while i_ptr + 1 < program.len() {
@@ -80,7 +80,7 @@ Program: 0,3,5,4,3,0";
     };
 
     // part 1
-    let output = run_program(program.clone(), real_a, real_b, real_c)
+    let output = run_program(&program, real_a, real_b, real_c)
         .iter()
         .map(|n| n.to_string())
         .collect::<Vec<String>>()
@@ -88,11 +88,11 @@ Program: 0,3,5,4,3,0";
     println!("{}", output);
 
     // part 2
-    // assume no periodicity in outputs (seems unlikely)
+    // 3 secs is not too shabby for a stupid brute force solution tbqh
 
     fn last_n_matching<T>(
-        v1: Vec<T>,
-        v2: Vec<T>,
+        v1: &[T],
+        v2: &[T],
     ) -> usize
     where
         T: PartialEq,
@@ -106,36 +106,37 @@ Program: 0,3,5,4,3,0";
     }
 
     let mut new_a = real_a;
-    let l = program.clone().len();
+    let l = &program.len();
     loop {
-        let output = run_program(program.clone(), new_a, real_b, real_c);
-        // println!("{:?}", output);
-        if output == program.clone() {
-            break;
-        } else if output.len() > l {
-            panic!()
-        } else if output.len() < l - 1 {
-            new_a *= 10001;
-            new_a /= 10000;
-        } else if output.len() < l {
-            new_a *= 100001;
-            new_a /= 100000;
-        } else {
-            // arrives at a solution fairly quickly, but it will be too high
-            // i haven't found a way to reach the goal in one pass
-            let last = last_n_matching(output, program.clone());
-            new_a += 3_usize.pow(17_u32.saturating_sub(last as u32));
+        let output = run_program(&program, new_a, real_b, real_c);
+        match 1 {
+            _a if output == program => break,
+            _a if output.len() > *l => panic!(),
+            _a if output.len() < *l - 1 => {
+                new_a *= 10001;
+                new_a /= 10000;
+            }
+            _a if output.len() < *l => {
+                new_a *= 100001;
+                new_a /= 100000;
+            }
+            _ => {
+                // arrives at a solution fairly quickly, but it will be too high
+                // i haven't found a way to reach the goal in one pass
+                let last = last_n_matching(&output, &program);
+                new_a += 3_usize.pow(17_u32.saturating_sub(last as u32));
+            }
         }
     }
     println!("first pass (high): {:?}", new_a);
 
     new_a -= 3_usize.pow(17);
     loop {
-        let output = run_program(program.clone(), new_a, real_b, real_c);
-        if output == program.clone() {
+        let output = run_program(&program, new_a, real_b, real_c);
+        if output == program {
             break;
         }
-        let last = last_n_matching(output, program.clone());
+        let last = last_n_matching(&output, &program);
         // guarantee we increment by 1 when we are close to the goal
         new_a += 2_usize.pow(14_u32.saturating_sub(last as u32));
     }
