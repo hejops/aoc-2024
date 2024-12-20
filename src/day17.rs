@@ -141,4 +141,30 @@ Program: 0,3,5,4,3,0";
         new_a += 2_usize.pow(14_u32.saturating_sub(last as u32));
     }
     println!("{:?}", new_a);
+
+    // https://github.com/onlycs/advent24/blob/main/solutions/src/day17.rs#L99
+    let mut candidates = vec![0];
+    // if some digit in the range [X, X+8] is used as input to program P, and P(A=X)
+    // evaluates to an output O whose first digit O[0] is equal to P[n], then
+    // digit X is marked as a successful candidate, multiplied by 8, and
+    // propagated to the next iteration, until P[0] is reached.
+    //
+    // each run of the program must go through three loops:
+    // 1. each (octal) digit in the reversed program (seed: 0)
+    // 2. each successful candidate from the previous iteration (multiplied by 8)
+    // 3. octal increment
+    for val in program.iter().rev() {
+        let mut ok = vec![];
+        for c in &candidates {
+            for k in 0..8 {
+                let cur = (c * 8) + k;
+                if run_program(&program, cur, real_b, real_c)[0] == *val {
+                    ok.push(cur);
+                }
+            }
+        }
+        // println!("{:?}", ok);
+        candidates = ok;
+    }
+    println!("{:?}", candidates.iter().min().unwrap());
 }
